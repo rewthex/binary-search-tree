@@ -1,7 +1,3 @@
-// Root node is middle element
-// Root node of left subtree is middle node of left sub-array
-// Root node of right subtree is middle node of right sub-array
-
 export class Node {
 	constructor(data) {
 		this.data = data || null;
@@ -51,7 +47,43 @@ export class BinarySearchTree {
 		}
 	}
 
-	deleteItem(value, root = this.root) {}
+	deleteItem(value, root = this.root) {
+		if (root === null) return root;
+
+		// Traverse the tree
+		if (value < root.data) {
+			root.left = this.deleteItem(value, root.left);
+		} else if (value > root.data) {
+			root.right = this.deleteItem(value, root.right);
+		} else {
+			// Node found
+
+			// Case 1: Node has no children
+			if (root.left === null && root.right === null) return null;
+
+			// Case 2: Node has one child
+			if (root.left === null) {
+				return root.right;
+			} else if (root.right === null) {
+				return root.left;
+			}
+
+			// Case 3: Node has two children
+			let minRight = this.findMin(root.right);
+			root.data = minRight.data;
+
+			root.right = this.deleteItem(minRight.data, root.right);
+		}
+
+		return root;
+	}
+
+	findMin(root) {
+		while (root.left !== null) {
+			root = root.left;
+		}
+		return root;
+	}
 
 	find(value, root = this.root) {
 		if (root === null || root.data === value) return root;
@@ -73,10 +105,58 @@ export class BinarySearchTree {
 			if (current.right) queue.unshift(current.right);
 		}
 	}
-}
 
-const bst = new BinarySearchTree([1, 2, 3, 4, 5, 6]);
-const printNode = (node) => {
-	console.log(node.data);
-};
-bst.levelOrder(printNode)
+	preOrder(callback, root = this.root) {
+		if (root === null) return;
+		callback(root);
+		this.preOrder(callback, root.left);
+		this.preOrder(callback, root.right);
+	}
+
+	inOrder(callback, root = this.root) {
+		if (root === null) return;
+		this.inOrder(callback, root.left);
+		callback(root);
+		this.inOrder(callback, root.right);
+	}
+
+	postOrder(callback, root = this.root) {
+		if (root === null) return;
+		this.preOrder(callback, root.left);
+		this.preOrder(callback, root.right);
+		callback(root);
+	}
+
+	height(node) {
+		if (node === null) return -1;
+		return Math.max(this.height(node.left), this.height(node.right)) + 1;
+	}
+
+	depth(node, root = this.root, depth = 0) {
+		if (root === null) return null;
+
+		if (node.data === root.data) {
+			return depth;
+		}
+
+		if (node.data > root.data) {
+			return this.depth(node, root.right, depth + 1);
+		} else {
+			return this.depth(node, root.left, depth + 1);
+		}
+	}
+
+	isBalanced(root = this.root) {
+		let leftHeight = this.height(root.left);
+		let rightHeight = this.height(root.right);
+		return Math.abs(leftHeight - rightHeight) <= 1;
+	}
+
+	rebalance(data = [], root = this.root) {
+		if (root === null) return;
+		data.push(root.data);
+		this.rebalance(data, root.left);
+		this.rebalance(data, root.right);
+		this.root = this.buildTree(data, true);
+	}
+}
